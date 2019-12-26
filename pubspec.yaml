@@ -12,6 +12,12 @@ dependencies:
     sdk: flutter
 
 
+  dio: 3.0.7  #dio版本
+
+  cookie_jar: ^1.0.0    #cookie缓存
+
+  dio_cookie_manager: ^1.0.0   #cookManager
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
