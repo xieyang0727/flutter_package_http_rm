@@ -90,7 +90,7 @@ class HttpUtilRM {
    * get请求
    */
   get(url, {data, options, cancelToken}) async {
-    ResponseNew responseNew = ResponseNew();
+    ResponseData responseNew = ResponseData();
     Response response;
     try {
       response = await dio.get(url,
@@ -109,7 +109,7 @@ class HttpUtilRM {
    * post请求
    */
   post(url, {data, options, cancelToken}) async {
-    ResponseNew responseNew = ResponseNew();
+    ResponseData responseNew = ResponseData();
     Response response;
     try {
       response = await dio.post(url,
@@ -128,7 +128,7 @@ class HttpUtilRM {
    * 下载文件
    */
   downloadFile(urlPath, savePath) async {
-    ResponseNew responseNew = ResponseNew();
+    ResponseData responseNew = ResponseData();
     Response response;
     try {
       response = await dio.download(urlPath, savePath,
@@ -189,7 +189,7 @@ class HttpUtilRM {
 }
 
 //整体返回的数据
-class ResponseNew {
+class ResponseData {
   Response response; // 返回正常的数据
   bool isSuccess = false; //是否请求数据成功
   DioError dioError; // 错误的信息
