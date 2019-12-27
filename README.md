@@ -5,6 +5,11 @@
  zh-Hans-CN)
 
 ## 安装
+引用头文件
+```bash
+import 'package:flutter_package_http_rm/flutter_package_http_rm.dart';
+```
+
 ```bash
 打开pubspec.yaml并将以下行添加到依赖项： (备注:yaml 需要前边有两个空格,否则Packages get失败)
 
