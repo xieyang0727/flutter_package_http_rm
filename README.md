@@ -72,7 +72,10 @@ void setUpHttp() async {
       },
       parameterErrorCallbackRM: (DioError e) {
         print('网络出错误了回调 $e');
-      },isShowLog: RM_SELECTION_STATE.is_true,headsMap: {"version":"1.0.0"});
+      },isShowLog:false,headsMap: {"version":"1.0.0"});
+ 
+ <!--支持链式调用-->
+  httpUtilRM..setHeadsMap ={"ver":"444"} ..setIsShowLog=true;
 
   ResponseData responsePost =
       await httpUtilRM.post(Api.TEST_LIST2, data: {"start": "2"});

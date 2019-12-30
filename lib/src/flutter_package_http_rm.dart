@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'http_rm_configuration.dart';
+import 'package:flutter/material.dart';
+
 typedef DefaultCallbackRM = void Function();
 typedef ParameterErrorCallbackRM = void Function(DioError dioError);
 
@@ -18,25 +19,50 @@ class HttpUtilRM {
   DefaultCallbackRM onResponseBefore; //响应之前
   ParameterErrorCallbackRM parameterErrorCallbackRM; //整体返回一个错误码
 
-  bool isShowLog ; // 单个添加
-  bool isOpenCook ; //单个添加是否保存cook
-  Map<String, dynamic>headsMap; //单个添加http的heads头
+  bool isShowLog; // 单个添加
+  bool isOpenCook; //单个添加是否保存cook
+  Map<String, dynamic> headsMap; //单个添加http的heads头
+
+  //添加dart语言特色链式方法调用
+//  更改头
+  set setHeadsMap(Map<String, dynamic> value) {
+    headsMap = value;
+    dio.options.headers = value;
+  }
+
+  Map<String, dynamic> get setHeadsMap => headsMap;
+
+//  更改是否显示log日志
+  set setIsShowLog(bool value) {
+    isShowLog = value;
+    if (value) {
+      dio.interceptors.add(LogInterceptor(
+          responseBody: true,
+          request: true,
+          requestHeader: true,
+          responseHeader: true)); //开启请求日志
+    }
+  }
+
+  bool get setIsShowLog => isShowLog;
 
   /*
    * config it and create
    */
 //  @required 是否必传 {}花括号
-  HttpUtilRM(
-      {Key key,
-        this.onRequestBefore,
-        this.onRequestErrorBefore,
-        this.onResponseBefore,
-        this.parameterErrorCallbackRM,
-        bool isShowLog, bool isOpenCook,
-        this.headsMap,
-      }) : this.isShowLog = isShowLog ?? HTTP_RM_CONFIGURATION.isHttpOpenLog , this.isOpenCook = isOpenCook ?? HTTP_RM_CONFIGURATION.isHttpOpenCook {
-
-    const bool inProduction = const bool.fromEnvironment("dart.vm.product"); //判断是否release还是debug环境
+  HttpUtilRM({
+    Key key,
+    this.onRequestBefore,
+    this.onRequestErrorBefore,
+    this.onResponseBefore,
+    this.parameterErrorCallbackRM,
+    bool isShowLog,
+    bool isOpenCook,
+    this.headsMap,
+  })  : this.isShowLog = isShowLog ?? HTTP_RM_CONFIGURATION.isHttpOpenLog,
+        this.isOpenCook = isOpenCook ?? HTTP_RM_CONFIGURATION.isHttpOpenCook {
+    const bool inProduction =
+    const bool.fromEnvironment("dart.vm.product"); //判断是否release还是debug环境
 
     String httpUrl;
 
@@ -50,11 +76,10 @@ class HttpUtilRM {
       httpUrl = HTTP_RM_CONFIGURATION.baseHttpURL;
     }
 
-    Map <String, dynamic>heads = HTTP_RM_CONFIGURATION.headsMap;
+    Map<String, dynamic> heads = HTTP_RM_CONFIGURATION.headsMap;
     if (this.headsMap != null) {
       heads = this.headsMap;
     }
-
 
     //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
     options = BaseOptions(
@@ -76,7 +101,7 @@ class HttpUtilRM {
 
     dio = Dio(options);
 
-    if (this.isShowLog ) {
+    if (this.isShowLog) {
       dio.interceptors.add(LogInterceptor(
           responseBody: true,
           request: true,
