@@ -60,36 +60,32 @@ HTTP_RM_CONFIGURATION.headsMap ={
 ```
 方法调用
 ```bash 
-void setUpHttp () async{
+void setUpHttp() async {
+  HttpUtilRM httpUtilRM = HttpUtilRM(
+      onRequestBefore: () {
+        print('开始网络请求了');
+      },
+      onRequestErrorBefore: () {
+        print('将要出错误了');
+      },
+      onResponseBefore: () {
+        print('网络响应之前');
+      },
+      parameterErrorCallbackRM: (DioError e) {
+        print('网络出错误了回调 $e');
+      },isShowLog: RM_SELECTION_STATE.is_true,headsMap: {"version":"1.0.0"});
 
-//下列回调可选填也可不填
+  ResponseData responsePost =
+      await httpUtilRM.post(Api.TEST_LIST2, data: {"start": "2"});
 
-HttpUtilRM httpUtilRM =HttpUtilRM(onRequestBefore:(){
-
-  print('开始网络请求了');
-
-},onRequestErrorBefore: (){
-
-  print('将要出错误了');
-
-},onResponseBefore: (){
-
-  print('网络响应之前');
-
-},parameterErrorCallbackRM: (DioError e){
-
-  print('网络出错误了回调 $e');
-
-},headsMap: {"version":"1.0.0"},
-isShowLog: RM_SELECTION_STATE.is_true,
-isOpenCook: RM_SELECTION_STATE.is_true);
-
-  ResponseData responsePost = await httpUtilRM.post(Api.TEST_LIST2);
-
-  Response response =responsePost.response;
-
-  print('responsePost $response');
-
+  if (responsePost.isSuccess) {
+    Response response = responsePost.response;
+//    code码错误等业务处理在这里做
+    print("response $response");
+  } else {
+    DioError dioError = responsePost.dioError;
+    print("dioError $dioError");
+  }
 }
 ```
 
