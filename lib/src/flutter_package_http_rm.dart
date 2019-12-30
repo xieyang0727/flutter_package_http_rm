@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio/dio.dart';
-import 'http_rm_configuration.dart';
 import 'package:flutter/material.dart';
-import 'http_rm_enumeration.dart';
-
+import 'http_rm_configuration.dart';
 typedef DefaultCallbackRM = void Function();
 typedef ParameterErrorCallbackRM = void Function(DioError dioError);
 
@@ -20,25 +18,25 @@ class HttpUtilRM {
   DefaultCallbackRM onResponseBefore; //响应之前
   ParameterErrorCallbackRM parameterErrorCallbackRM; //整体返回一个错误码
 
-  RM_SELECTION_STATE isShowLog = RM_SELECTION_STATE.is_default; // 单个添加
-  RM_SELECTION_STATE isOpenCook = RM_SELECTION_STATE.is_default; //单个添加是否保存cook
+  bool isShowLog ; // 单个添加
+  bool isOpenCook ; //单个添加是否保存cook
   Map<String, dynamic>headsMap; //单个添加http的heads头
 
   /*
    * config it and create
    */
 //  @required 是否必传 {}花括号
-//
   HttpUtilRM(
       {Key key,
-      this.onRequestBefore,
-      this.onRequestErrorBefore,
-      this.onResponseBefore,
-      this.parameterErrorCallbackRM,
-      this.isShowLog,
-      this.isOpenCook,
-      this.headsMap}) {
-    const bool inProduction = const bool.fromEnvironment("dart.vm.product");
+        this.onRequestBefore,
+        this.onRequestErrorBefore,
+        this.onResponseBefore,
+        this.parameterErrorCallbackRM,
+        bool isShowLog, bool isOpenCook,
+        this.headsMap,
+      }) : this.isShowLog = isShowLog ?? HTTP_RM_CONFIGURATION.isHttpOpenLog , this.isOpenCook = isOpenCook ?? HTTP_RM_CONFIGURATION.isHttpOpenCook {
+
+    const bool inProduction = const bool.fromEnvironment("dart.vm.product"); //判断是否release还是debug环境
 
     String httpUrl;
 
@@ -60,7 +58,7 @@ class HttpUtilRM {
 
     //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
     options = BaseOptions(
-        //请求基地址,可以包含子路径
+      //请求基地址,可以包含子路径
 
         baseUrl: httpUrl,
         //连接服务器超时时间，单位是毫秒.
@@ -70,17 +68,15 @@ class HttpUtilRM {
         //Http请求头.
         headers: heads
 
-        //请求的Content-Type，默认值是[ContentType.json]. 也可以用ContentType.parse("application/x-www-form-urlencoded")
+      //请求的Content-Type，默认值是[ContentType.json]. 也可以用ContentType.parse("application/x-www-form-urlencoded")
 //      contentType: ContentType.json,
-        //表示期望以那种格式(方式)接受响应数据。接受四种类型 `json`, `stream`, `plain`, `bytes`. 默认值是 `json`,
+      //表示期望以那种格式(方式)接受响应数据。接受四种类型 `json`, `stream`, `plain`, `bytes`. 默认值是 `json`,
 //      responseType: ResponseType.plain,
-        );
+    );
 
     dio = Dio(options);
 
-    if ((this.isShowLog == RM_SELECTION_STATE.is_true) ||
-        (HTTP_RM_CONFIGURATION.isHttpOpenLog &&
-            this.isShowLog != RM_SELECTION_STATE.is_false)) {
+    if (this.isShowLog ) {
       dio.interceptors.add(LogInterceptor(
           responseBody: true,
           request: true,
@@ -88,9 +84,7 @@ class HttpUtilRM {
           responseHeader: true)); //开启请求日志
     }
 
-    if ((this.isOpenCook == RM_SELECTION_STATE.is_true) ||
-        (HTTP_RM_CONFIGURATION.isHttpOpenCook &&
-            this.isOpenCook != RM_SELECTION_STATE.is_false)) {
+    if (this.isOpenCook) {
       //   CookieJar //内存中
       //   PersistCookieJar // 数据持久化 可选
       dio.interceptors.add(CookieManager(CookieJar()));
@@ -166,9 +160,9 @@ class HttpUtilRM {
     try {
       response = await dio.download(urlPath, savePath,
           onReceiveProgress: (int count, int total) {
-        //进度
-        print("$count $total");
-      });
+            //进度
+            print("$count $total");
+          });
       responseNew.isSuccess = true;
       responseNew.response = response;
     } on DioError catch (e) {
