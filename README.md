@@ -34,6 +34,9 @@ import 'package:flutter_package_http_rm/flutter_package_http_rm.dart';
 
 2.http_rm_configuration.dart 配置文件 (baseUrl,是否打印日志,是否保留cook,http的heads)
 
+3.http_rm_enumeration.dart 枚举文件
+
+
 ## 使用方法
 
 ### 外部可选配置
