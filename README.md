@@ -38,8 +38,15 @@ import 'package:flutter_package_http_rm/flutter_package_http_rm.dart';
 
 ### 外部可选配置
 ```bash
-HTTP_RM_CONFIGURATION.baseHttpURL="http://*****"; (必填)
+//  baseHttpURL(如果配置了baseHttpURL读取配置的如果没有配置，那么根据debug和release自动读取baseReleaseHttpURL和baseDebugHttpURL)
 
+HTTP_RM_CONFIGURATION.baseHttpURL="http://*****"; 
+
+HTTP_RM_CONFIGURATION.baseReleaseHttpURL="http:***";
+
+HTTP_RM_CONFIGURATION.baseDebugHttpURL="http:***";
+
+    
 HTTP_RM_CONFIGURATION.isHttpOpenLog=true; (不填写默认false)
 
 HTTP_RM_CONFIGURATION.isHttpOpenCook=true(不填写默认false);
@@ -70,7 +77,9 @@ HttpUtilRM httpUtilRM =HttpUtilRM(onRequestBefore:(){
 
   print('网络出错误了回调 $e');
 
-});
+},headsMap: {"version":"1.0.0"},
+isShowLog: RM_SELECTION_STATE.is_true,
+isOpenCook: RM_SELECTION_STATE.is_true);
 
   ResponseData responsePost = await httpUtilRM.post(Api.TEST_LIST2);
 
