@@ -22,7 +22,7 @@ class HttpUtilRM {
 
   RM_SELECTION_STATE isShowLog = RM_SELECTION_STATE.is_default; // 单个添加
   RM_SELECTION_STATE isOpenCook = RM_SELECTION_STATE.is_default; //单个添加是否保存cook
-  Map headsMap; //单个添加http的heads头
+  Map<String, dynamic>headsMap; //单个添加http的heads头
 
   /*
    * config it and create
@@ -52,6 +52,12 @@ class HttpUtilRM {
       httpUrl = HTTP_RM_CONFIGURATION.baseHttpURL;
     }
 
+    Map <String, dynamic>heads = HTTP_RM_CONFIGURATION.headsMap;
+    if (this.headsMap != null) {
+      heads = this.headsMap;
+    }
+
+
     //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
     options = BaseOptions(
         //请求基地址,可以包含子路径
@@ -62,7 +68,7 @@ class HttpUtilRM {
         //响应流上前后两次接受到数据的间隔，单位为毫秒。
         receiveTimeout: 5000,
         //Http请求头.
-        headers: HTTP_RM_CONFIGURATION.headsMap
+        headers: heads
 
         //请求的Content-Type，默认值是[ContentType.json]. 也可以用ContentType.parse("application/x-www-form-urlencoded")
 //      contentType: ContentType.json,
