@@ -5,11 +5,13 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio/dio.dart';
 import 'http_rm_configuration.dart';
 import 'package:flutter/material.dart';
+import 'http_rm_error.dart';
 import 'http_rm_result_data.dart';
 import 'http_rm_options.dart';
 
 typedef DefaultCallbackRM = void Function();
 typedef ParameterErrorCallbackRM = void Function(DioError dioError);
+typedef ParameterResultCallbackRM = RMError Function(Response object);
 
 class HttpUtilRM {
   static HttpUtilRM instance;
@@ -20,6 +22,7 @@ class HttpUtilRM {
   DefaultCallbackRM onRequestErrorBefore; //请求出错误了
   DefaultCallbackRM onResponseBefore; //响应之前
   ParameterErrorCallbackRM parameterErrorCallbackRM; //整体返回一个错误码
+  ParameterResultCallbackRM onClientCodeJudgeCallBack; //数据响应
 
   bool isShowLog; // 单个添加
   bool isOpenCook; //单个添加是否保存cook
@@ -60,14 +63,15 @@ class HttpUtilRM {
 //  @required 是否必传 {}花括号
   HttpUtilRM(
       {Key key,
-        this.onRequestBefore,
-        this.onRequestErrorBefore,
-        this.onResponseBefore,
-        this.parameterErrorCallbackRM,
-        bool isShowLog,
-        bool isOpenCook,
-        this.headsMap,
-        BaseOptions customOptions})
+      this.onRequestBefore,
+      this.onRequestErrorBefore,
+      this.onResponseBefore,
+      this.parameterErrorCallbackRM,
+      bool isShowLog,
+      bool isOpenCook,
+      this.headsMap,
+      BaseOptions customOptions,
+      this.onClientCodeJudgeCallBack})
       : this.isShowLog = isShowLog ?? HTTP_RM_CONFIGURATION.isHttpOpenLog,
         this.isOpenCook = isOpenCook ?? HTTP_RM_CONFIGURATION.isHttpOpenCook {
     if (customOptions == null) {
@@ -123,9 +127,18 @@ class HttpUtilRM {
     try {
       Response response = await dio.get(url,
           queryParameters: data, options: options, cancelToken: cancelToken);
+      //判断外边是否对数据做特殊处理
+      if (judgeClientCode(response, url) != null) {
+        return judgeClientCode(response, url);
+      }
       responseNew = ResponseDataRM(true, url: url, response: response);
     } on DioError catch (e) {
-      responseNew = ResponseDataRM(false, url: url, dioError: e);
+      responseNew = ResponseDataRM(false,
+          url: url,
+          rmError: RMError(
+              rmErrorType: RMErrorType.NET,
+              dioError: e,
+              msg: HTTP_RM_CONFIGURATION.errorNetDefault));
       formatError(e);
     }
     return responseNew;
@@ -137,11 +150,22 @@ class HttpUtilRM {
   post(url, {data, options, cancelToken}) async {
     ResponseDataRM responseNew;
     try {
+      //请求数据
       Response response = await dio.post(url,
           queryParameters: data, options: options, cancelToken: cancelToken);
+//判断外边是否对数据做特殊处理
+      if (judgeClientCode(response, url) != null) {
+        return judgeClientCode(response, url);
+      }
       responseNew = ResponseDataRM(true, url: url, response: response);
     } on DioError catch (e) {
-      responseNew = ResponseDataRM(false, url: url, dioError: e);
+      responseNew = ResponseDataRM(false,
+          url: url,
+          rmError: RMError(
+              rmErrorType: RMErrorType.NET,
+              dioError: e,
+              msg: HTTP_RM_CONFIGURATION.errorNetDefault));
+
       formatError(e);
     }
     return responseNew;
@@ -153,44 +177,49 @@ class HttpUtilRM {
   downloadFile(urlPath, savePath) async {
     ResponseDataRM responseNew;
     try {
+      //判断外边是否对数据做特殊处理
       Response response = await dio.download(urlPath, savePath,
           onReceiveProgress: (int count, int total) {
-            //进度
-            print("$count $total");
-          });
+        //进度
+        print("$count $total");
+      });
+      if (judgeClientCode(response, urlPath) != null) {
+        return judgeClientCode(response, urlPath);
+      }
       responseNew = ResponseDataRM(true, url: urlPath, response: response);
     } on DioError catch (e) {
-      responseNew = ResponseDataRM(false, url: urlPath, dioError: e);
+      responseNew = ResponseDataRM(false,
+          url: urlPath,
+          rmError: RMError(
+              rmErrorType: RMErrorType.NET,
+              dioError: e,
+              msg: HTTP_RM_CONFIGURATION.errorNetDefault));
       formatError(e);
     }
     return responseNew;
   }
 
+
   /*
-   * error统一处理
+   * 判断客户端是否有对code做整体判断
+   */
+
+  ResponseDataRM judgeClientCode(Response response, String url) {
+    if (this.onClientCodeJudgeCallBack != null) {
+      RMError rmError = this.onClientCodeJudgeCallBack(response);
+      if (rmError != null) {
+        return ResponseDataRM(false, url: url, rmError: rmError);
+      }
+    }
+    return null;
+  }
+
+  /*
+   * 网络error统一处理
    */
   void formatError(DioError e) {
     if (HTTP_RM_CONFIGURATION.isHttpOpenLog) {
       print("网络请求错误DioError $e ");
-    }
-    if (e.type == DioErrorType.CONNECT_TIMEOUT) {
-      // It occurs when url is opened timeout.
-//      print("连接超时");
-    } else if (e.type == DioErrorType.SEND_TIMEOUT) {
-      // It occurs when url is sent timeout.
-//      print("请求超时");
-    } else if (e.type == DioErrorType.RECEIVE_TIMEOUT) {
-      //It occurs when receiving timeout
-//      print("响应超时");
-    } else if (e.type == DioErrorType.RESPONSE) {
-      // When the server response, but with a incorrect status, such as 404, 503...
-//      print("出现异常");
-    } else if (e.type == DioErrorType.CANCEL) {
-      // When the request is cancelled, dio will throw a error with this type.
-//      print("请求取消");
-    } else {
-      //DEFAULT Default error type, Some other Error. In this case, you can read the DioError.error if it is not null.
-//      print("未知错误");
     }
     if (parameterErrorCallbackRM != null) {
       parameterErrorCallbackRM(e);

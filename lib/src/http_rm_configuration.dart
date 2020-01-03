@@ -16,6 +16,9 @@ class HTTP_RM_CONFIGURATION {
 //  自定义头
   static Map<String, dynamic> headsMap ;
 
+//  网络错误默认标示语
+  static String errorNetDefault ="";
+
 
 
 }
